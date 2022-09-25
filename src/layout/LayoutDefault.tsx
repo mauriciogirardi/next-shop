@@ -1,4 +1,5 @@
 import Image from "next/future/image";
+import Link from "next/link";
 import logoImg from "../assets/logo.svg";
 import { Container, Header } from "../styles/layout/layoutDefault";
 
@@ -10,7 +11,9 @@ export const LayoutDefault = ({ children }: LayoutDefaultProps) => {
   return (
     <Container>
       <Header>
-        <Image src={logoImg} alt="" />
+        <Link href="/" prefetch={false}>
+          <Image src={logoImg} alt="" />
+        </Link>
       </Header>
 
       {children}
