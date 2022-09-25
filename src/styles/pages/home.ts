@@ -36,6 +36,7 @@ export const Product = styled("a", {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: "1rem",
 
     transform: "translateY(110%)",
     opacity: 0,
@@ -43,6 +44,7 @@ export const Product = styled("a", {
 
     strong: {
       fontSize: "$lg",
+      color: "$gray100",
     },
 
     span: {
