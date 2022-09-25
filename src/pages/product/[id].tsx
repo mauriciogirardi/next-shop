@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from "next";
+import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/future/image";
-import { PriceProps, stripe } from "../../lib/stripe";
 
 import {
   ImageContainer,
@@ -9,8 +9,10 @@ import {
   ProductContainer,
   ProductDetails,
 } from "../../styles/pages/product";
+import { PriceProps, stripe } from "../../lib/stripe";
 import { formattedCurrency } from "../../utils/formattedCurrency";
-import { useRouter } from "next/router";
+import { useState } from "react";
+import { api } from "../../lib/api";
 
 interface Product {
   id: string;
@@ -18,6 +20,7 @@ interface Product {
   imageUrl: string;
   description: string;
   price: string;
+  defaultPriceId: string;
 }
 
 interface ProductProps {
@@ -25,10 +28,28 @@ interface ProductProps {
 }
 
 export default function Product({ product }: ProductProps) {
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
   const { isFallback } = useRouter();
 
   if (isFallback) {
     return <Loading>Carregando Produto...</Loading>;
+  }
+
+  async function handleByProduct() {
+    try {
+      setLoadingCheckout(true);
+      const response = await api.post("/checkout", {
+        priceId: product.defaultPriceId,
+      });
+
+      const { checkoutUrl } = response.data;
+
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCheckout(false);
+    }
   }
 
   return (
@@ -45,7 +66,9 @@ export default function Product({ product }: ProductProps) {
           <h1>{product.name}</h1>
           <span>{product.price}</span>
           <p>{product.description}</p>
-          <button>Comprar Agora</button>
+          <button onClick={handleByProduct} disabled={loadingCheckout}>
+            Comprar Agora
+          </button>
         </ProductDetails>
       </ProductContainer>
     </>
@@ -80,6 +103,7 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({
         imageUrl: product.images[0],
         description: product.description,
         price: formattedCurrency({ priceInCents: price.unit_amount || 0 }),
+        defaultPriceId: price.id,
       },
     },
     revalidate: 60 * 60 * 1, // 1hour
